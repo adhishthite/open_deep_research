@@ -67,3 +67,12 @@ tmp/
 temp/
 
 .langgraph_api
+
+# AI Files
+.ropeproject
+.claude
+.gemini
+.kiro
+GEMINI.md
+AGENTS.md
+CLAUDE.md

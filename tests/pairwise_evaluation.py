@@ -27,9 +27,14 @@ Which agent was able to find better sources and better answer the question? The 
 With those criteria in mind, please select which response you prefer, and explain why!
 """
 
+
 class HeadToHeadRanking(BaseModel):
-    reasoning: str = Field(description="The reasoning for why you selected the preferred answer. This should be a detailed explanation!")
-    preferred_answer: int = Field(description="The preferred answer between 1 and 2, where 1 is the first response, 2 is the second response.")
+    reasoning: str = Field(
+        description="The reasoning for why you selected the preferred answer. This should be a detailed explanation!"
+    )
+    preferred_answer: int = Field(
+        description="The preferred answer between 1 and 2, where 1 is the first response, 2 is the second response."
+    )
 
 
 def head_to_head_evaluator(inputs: dict, outputs: list[dict]) -> list:
@@ -39,11 +44,13 @@ def head_to_head_evaluator(inputs: dict, outputs: list[dict]) -> list:
         thinking={"type": "enabled", "budget_tokens": 16000},
     )
 
-    response = grader_llm.with_structured_output(HeadToHeadRanking).invoke(HEAD_TO_HEAD_PROMPT.format(
-        question=inputs["messages"][0]["content"],
-        answer_a=outputs[0].get("final_report", "N/A"),
-        answer_b=outputs[1].get("final_report", "N/A"),
-    ))
+    response = grader_llm.with_structured_output(HeadToHeadRanking).invoke(
+        HEAD_TO_HEAD_PROMPT.format(
+            question=inputs["messages"][0]["content"],
+            answer_a=outputs[0].get("final_report", "N/A"),
+            answer_b=outputs[1].get("final_report", "N/A"),
+        )
+    )
 
     if response.preferred_answer == 1:
         scores = [1, 0]
@@ -83,11 +90,21 @@ With those criteria in mind, please rank the responses from 1 to 3, where 1 is t
 And please explain why you selected the ranking you did!
 """
 
+
 class Rankings(BaseModel):
-    reasoning: str = Field(description="The reasoning for why you selected the preferred answer. This should be a detailed explanation!")
-    preferred_answer: int = Field(description="The preferred answer between 1 and 3, where 1 is the first response, 2 is the second response, and 3 is the third response.")
-    second_best_answer: int = Field(description="The second best answer between 1 and 3, where 1 is the first response, 2 is the second response, and 3 is the third response.")
-    worst_answer: int = Field(description="The worst answer between 1 and 3, where 1 is the first response, 2 is the second response, and 3 is the third response.")
+    reasoning: str = Field(
+        description="The reasoning for why you selected the preferred answer. This should be a detailed explanation!"
+    )
+    preferred_answer: int = Field(
+        description="The preferred answer between 1 and 3, where 1 is the first response, 2 is the second response, and 3 is the third response."
+    )
+    second_best_answer: int = Field(
+        description="The second best answer between 1 and 3, where 1 is the first response, 2 is the second response, and 3 is the third response."
+    )
+    worst_answer: int = Field(
+        description="The worst answer between 1 and 3, where 1 is the first response, 2 is the second response, and 3 is the third response."
+    )
+
 
 def free_for_all_evaluator(inputs: dict, outputs: list[dict]) -> list:
     grader_llm = ChatAnthropic(
@@ -96,18 +113,21 @@ def free_for_all_evaluator(inputs: dict, outputs: list[dict]) -> list:
         thinking={"type": "enabled", "budget_tokens": 16000},
     )
 
-    response = grader_llm.with_structured_output(Rankings).invoke(ALL_THREE_PROMPT.format(
-        question=inputs["messages"][0]["content"],
-        answer_a=outputs[0].get("final_report", "N/A"),
-        answer_b=outputs[1].get("final_report", "N/A"),
-        answer_c=outputs[2].get("final_report", "N/A"),
-    ))
+    response = grader_llm.with_structured_output(Rankings).invoke(
+        ALL_THREE_PROMPT.format(
+            question=inputs["messages"][0]["content"],
+            answer_a=outputs[0].get("final_report", "N/A"),
+            answer_b=outputs[1].get("final_report", "N/A"),
+            answer_c=outputs[2].get("final_report", "N/A"),
+        )
+    )
 
     scores = [0, 0, 0]
     scores[response.preferred_answer - 1] = 1
-    scores[response.second_best_answer - 1] = .5
+    scores[response.second_best_answer - 1] = 0.5
     scores[response.worst_answer - 1] = 0
     return scores
+
 
 single_agent = "DR Single Agent - Tavily #-87e8a6c0"
 multi_agent_supervisor = "DR Supervisor: Multi Agent - Tavily #-cd25e7e3"
@@ -122,7 +142,10 @@ multi_agent_workflow = "DR MAW - Tavily #-c6818a83"
 # )
 
 evaluate_comparative(
-    (single_agent, multi_agent_supervisor_v2),  # Replace with the names/IDs of your experiments
+    (
+        single_agent,
+        multi_agent_supervisor_v2,
+    ),  # Replace with the names/IDs of your experiments
     evaluators=[head_to_head_evaluator],
     randomize_order=True,
 )

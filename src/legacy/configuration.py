@@ -1,7 +1,9 @@
+"""Configuration classes and enums for the legacy open deep research implementation."""
+
 import os
-from enum import Enum
 from dataclasses import dataclass, fields
-from typing import Any, Optional, Dict, Literal
+from enum import Enum
+from typing import Any, Dict, Literal, Optional
 
 from langchain_core.runnables import RunnableConfig
 
@@ -17,7 +19,10 @@ DEFAULT_REPORT_STRUCTURE = """Use this structure to create a report on the user-
    - Aim for 1 structural element (either a list or table) that distills the main body sections 
    - Provide a concise summary of the report"""
 
+
 class SearchAPI(Enum):
+    """Enumeration of supported search APIs."""
+
     PERPLEXITY = "perplexity"
     TAVILY = "tavily"
     EXA = "exa"
@@ -28,9 +33,11 @@ class SearchAPI(Enum):
     GOOGLESEARCH = "googlesearch"
     NONE = "none"
 
+
 @dataclass(kw_only=True)
 class Configuration:
     """Configuration for the workflow/graph-based implementation (graph.py)."""
+
     # Common configuration
     report_structure: str = DEFAULT_REPORT_STRUCTURE
     search_api: SearchAPI = SearchAPI.TAVILY
@@ -40,10 +47,10 @@ class Configuration:
     summarization_model: str = "claude-3-5-haiku-latest"
     max_structured_output_retries: int = 3
     include_source_str: bool = False
-    
+
     # Workflow-specific configuration
-    number_of_queries: int = 2 # Number of search queries to generate per iteration
-    max_search_depth: int = 2 # Maximum number of reflection + search iterations
+    number_of_queries: int = 2  # Number of search queries to generate per iteration
+    max_search_depth: int = 2  # Maximum number of reflection + search iterations
     planner_provider: str = "anthropic"
     planner_model: str = "claude-3-7-sonnet-latest"
     planner_model_kwargs: Optional[Dict[str, Any]] = None
@@ -66,9 +73,11 @@ class Configuration:
         }
         return cls(**{k: v for k, v in values.items() if v})
 
+
 @dataclass(kw_only=True)
 class MultiAgentConfiguration:
     """Configuration for the multi-agent implementation (multi_agent.py)."""
+
     # Common configuration
     search_api: SearchAPI = SearchAPI.TAVILY
     search_api_config: Optional[Dict[str, Any]] = None
@@ -76,12 +85,14 @@ class MultiAgentConfiguration:
     summarization_model_provider: str = "anthropic"
     summarization_model: str = "claude-3-5-haiku-latest"
     include_source_str: bool = False
-    
+
     # Multi-agent specific configuration
-    number_of_queries: int = 2 # Number of search queries to generate per section
+    number_of_queries: int = 2  # Number of search queries to generate per section
     supervisor_model: str = "anthropic:claude-3-7-sonnet-latest"
     researcher_model: str = "anthropic:claude-3-7-sonnet-latest"
-    ask_for_clarification: bool = False # Whether to ask for clarification from the user
+    ask_for_clarification: bool = (
+        False  # Whether to ask for clarification from the user
+    )
     # MCP server configuration
     mcp_server_config: Optional[Dict[str, Any]] = None
     mcp_prompt: Optional[str] = None
@@ -101,6 +112,7 @@ class MultiAgentConfiguration:
             if f.init
         }
         return cls(**{k: v for k, v in values.items() if v})
+
 
 # Keep the old Configuration class for backward compatibility
 Configuration = Configuration

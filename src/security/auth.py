@@ -1,9 +1,12 @@
-import os
+"""Security and authentication utilities for the research system."""
+
 import asyncio
+import os
+from typing import Any, Optional
+
 from langgraph_sdk import Auth
 from langgraph_sdk.auth.types import StudioUser
-from supabase import create_client, Client
-from typing import Optional, Any
+from supabase import Client, create_client
 
 supabase_url = os.environ.get("SUPABASE_URL")
 supabase_key = os.environ.get("SUPABASE_KEY")
@@ -21,7 +24,6 @@ auth = Auth()
 @auth.authenticate
 async def get_current_user(authorization: str | None) -> Auth.types.MinimalUserDict:
     """Check if the user's JWT token is valid using Supabase."""
-
     # Ensure we have authorization header
     if not authorization:
         raise Auth.exceptions.HTTPException(
@@ -81,7 +83,6 @@ async def on_thread_create(
     1. Sets metadata on the thread being created to track ownership
     2. Returns a filter that ensures only the creator can access it
     """
-
     if isinstance(ctx.user, StudioUser):
         return
 
@@ -116,6 +117,7 @@ async def on_assistants_create(
     ctx: Auth.types.AuthContext,
     value: Auth.types.on.assistants.create.value,
 ):
+    """Handle assistant creation with proper authorization."""
     if isinstance(ctx.user, StudioUser):
         return
 
@@ -139,7 +141,6 @@ async def on_assistants_read(
     metadata since the assistant already exists - we just need to
     return a filter to ensure users can only see their own assistants.
     """
-
     if isinstance(ctx.user, StudioUser):
         return
 
@@ -148,6 +149,7 @@ async def on_assistants_read(
 
 @auth.on.store()
 async def authorize_store(ctx: Auth.types.AuthContext, value: dict):
+    """Authorize store access based on user context."""
     if isinstance(ctx.user, StudioUser):
         return
 
